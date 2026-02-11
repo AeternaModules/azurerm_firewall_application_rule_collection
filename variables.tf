@@ -25,18 +25,34 @@ EOT
     name                = string
     priority            = number
     resource_group_name = string
-    rule = object({
+    rule = list(object({
       description = optional(string)
       fqdn_tags   = optional(list(string))
       name        = string
-      protocol = optional(object({
+      protocol = optional(list(object({
         port = number
         type = string
-      }))
+      })))
       source_addresses = optional(list(string))
       source_ip_groups = optional(list(string))
       target_fqdns     = optional(list(string))
-    })
+    }))
   }))
+  validation {
+    condition = alltrue([
+      for k, v in var.firewall_application_rule_collections : (
+        length(v.rule) >= 1
+      )
+    ])
+    error_message = "Each rule list must contain at least 1 items"
+  }
+  validation {
+    condition = alltrue([
+      for k, v in var.firewall_application_rule_collections : (
+        alltrue([for item in v.rule : (item.protocol == null || (length(item.protocol) >= 1))])
+      )
+    ])
+    error_message = "Each protocol list must contain at least 1 items"
+  }
 }
 
