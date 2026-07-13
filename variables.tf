@@ -46,22 +46,6 @@ EOT
     ])
     error_message = "Each rule list must contain at least 1 items"
   }
-  validation {
-    condition = alltrue([
-      for k, v in var.firewall_application_rule_collections : (
-        alltrue([for item in v.rule : (item.protocol == null || (length(item.protocol) >= 1))])
-      )
-    ])
-    error_message = "Each protocol list must contain at least 1 items"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.firewall_application_rule_collections : (
-        v.priority >= 100 && v.priority <= 65000
-      )
-    ])
-    error_message = "must be between 100 and 65000"
-  }
   # --- Unconfirmed validation candidates, derived from azurerm_firewall_application_rule_collection's provider source ---
   # Not auto-enabled: either a bespoke provider validator we can't safely translate,
   # or a path that crosses a list-typed block (needs its own for_each wrapping).
@@ -84,6 +68,9 @@ EOT
   #   source:    [from resourcegroups.ValidateName: invalid when len(value) == 0]
   # path: resource_group_name
   #   source:    [from resourcegroups.ValidateName] !matched
+  # path: priority
+  #   condition: value >= 100 && value <= 65000
+  #   message:   must be between 100 and 65000
   # path: action
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
   # path: rule.name
